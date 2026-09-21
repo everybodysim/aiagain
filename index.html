@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexusAI - Puter.js AI Chatbot</title>
-    
-    <!-- Tailwind CSS -->
+    <title>NexusAI - Pollinations Powered Chatbot</title>
+
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -14,32 +14,28 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#eef2ff',
-                            100: '#e0e7ff',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            900: '#312e81',
-                            950: '#0f0e26'
+                            50 = '#eef2ff',
+                            100 = '#e0e7ff',
+                            500 = '#6366f1',
+                            600 = '#4f46e5',
+                            700 = '#4338ca',
+                            900 = '#312e81'
                         }
                     }
                 }
             }
         }
     </script>
-    
-    <!-- Puter.js SDK (v2) -->
-    <script src="https://js.puter.com/v2/"></script>
-    
-    <!-- Marked.js for Markdown parsing -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-    <!-- Highlight.js for Syntax Highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Highlight.js for Code Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
     <!-- Inter Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,831 +43,502 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        code, pre {
-            font-family: 'Fira Code', monospace;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(79, 70, 229, 0.4);
-            border-radius: 9999px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(99, 102, 241, 0.7);
-        }
+        body { font-family: 'Inter', sans-serif; }
+        code, pre { font-family: 'Fira Code', monospace; }
+        
+        /* Glassmorphism effects */
         .glass-panel {
             background: rgba(15, 23, 42, 0.75);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
-        .glass-card {
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.6); }
+
+        /* Typing Dots Animation */
+        .pulse-dot {
+            animation: pulse 1.4s infinite ease-in-out both;
         }
-        /* Typing indicator animation */
-        .typing-dot {
-            animation: typing 1.4s infinite ease-in-out both;
+        .pulse-dot:nth-child(2) { animation-delay: 0.2s; }
+        .pulse-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulse {
+            0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+            40% { opacity: 1; transform: scale(1.15); }
         }
-        .typing-dot:nth-child(1) { animation-delay: 0s; }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes typing {
-            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-        .prose pre {
-            margin-top: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-        .prose p {
-            margin-bottom: 0.75rem;
-        }
-        .prose p:last-child {
-            margin-bottom: 0;
-        }
+
+        /* Markdown Styling inside responses */
+        .markdown-body p { margin-bottom: 0.75rem; line-height: 1.625; }
+        .markdown-body p:last-child { margin-bottom: 0; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.75rem; }
+        .markdown-body ol { list-style-type: decimal; padding-left: 1.25rem; margin-bottom: 0.75rem; }
+        .markdown-body li { margin-bottom: 0.25rem; }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; color: #f8fafc; }
+        .markdown-body h1 { font-size: 1.25rem; }
+        .markdown-body h2 { font-size: 1.1rem; }
+        .markdown-body h3 { font-size: 1rem; }
+        .markdown-body blockquote { border-left: 3px solid #6366f1; padding-left: 0.75rem; color: #94a3b8; font-style: italic; margin-bottom: 0.75rem; }
+        .markdown-body a { color: #818cf8; text-decoration: underline; text-underline-offset: 2px; }
+        .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; }
+        .markdown-body th, .markdown-body td { border: 1px solid #334155; padding: 0.4rem 0.75rem; text-align: left; }
+        .markdown-body th { background: rgba(30, 41, 59, 0.8); font-weight: 600; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 h-full overflow-hidden flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+<body class="bg-slate-950 text-slate-100 h-full flex flex-col justify-between antialiased selection:bg-brand-500 selection:text-white overflow-hidden">
 
-    <header class="h-16 border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md px-4 flex items-center justify-between z-30 shrink-0">
+    <!-- Header -->
+    <header class="h-16 border-b border-slate-800/80 glass-panel px-4 md:px-6 flex items-center justify-between shrink-0 z-20">
         <div class="flex items-center gap-3">
-            <button id="toggle-sidebar" class="md:hidden p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors" title="Toggle Sidebar">
-                <i class="fa-solid fa-bars text-lg"></i>
-            </button>
-            <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
-                    <i class="fa-solid fa-robot text-white text-lg"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-base tracking-wide flex items-center gap-2">
-                        NexusAI
-                        <span class="text-[10px] uppercase font-semibold tracking-wider bg-brand-500/20 text-brand-300 border border-brand-500/30 px-2 py-0.5 rounded-full">Puter v2</span>
-                    </h1>
-                </div>
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-brand-500 to-purple-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                <i class="fa-solid fa-bolt text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-sm md:text-base tracking-wide flex items-center gap-2">
+                    NexusAI
+                    <span class="text-[10px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-mono">Pollinations API</span>
+                </h1>
+                <p class="text-[11px] text-slate-400 hidden sm:block">No API key required • Zero network locks</p>
             </div>
         </div>
 
-        <!-- Right Header Controls -->
-        <div class="flex items-center gap-3">
-            <!-- Connection Status Badge -->
-            <div id="puter-status" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>Puter Ready</span>
+        <div class="flex items-center gap-2 md:gap-3">
+            <!-- Model Selector -->
+            <div class="flex items-center bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-xs hover:border-slate-700 transition">
+                <i class="fa-solid fa-microchip text-indigo-400 mr-2"></i>
+                <select id="model-select" class="bg-transparent text-slate-200 outline-none cursor-pointer font-medium py-1">
+                    <option value="openai-large" class="bg-slate-900 text-slate-100" selected>GPT-4.1 / GPT-5 (openai-large) ✨</option>
+                    <option value="deepseek" class="bg-slate-900 text-slate-100">DeepSeek V3 / R1 (deepseek)</option>
+                    <option value="openai-reasoning" class="bg-slate-900 text-slate-100">o4-Mini Reasoning (openai-reasoning)</option>
+                    <option value="openai" class="bg-slate-900 text-slate-100">GPT-5 Nano (openai)</option>
+                    <option value="gemini" class="bg-slate-900 text-slate-100">Gemini 2.5 Flash (gemini)</option>
+                    <option value="qwen-coder" class="bg-slate-900 text-slate-100">Qwen 2.5 Coder (qwen-coder)</option>
+                    <option value="mistral" class="bg-slate-900 text-slate-100">Mistral Large (mistral)</option>
+                </select>
             </div>
 
-            <!-- Model Selection Dropdown -->
-            <div class="relative">
-                <div class="flex items-center bg-slate-800/90 border border-slate-700/80 rounded-xl px-3 py-1.5 gap-2 shadow-inner">
-                    <i class="fa-solid fa-microchip text-brand-400 text-xs"></i>
-                    <select id="model-select" class="bg-transparent text-xs font-medium text-slate-200 outline-none cursor-pointer pr-1">
-                        <option value="claude-3-5-sonnet" class="bg-slate-900 text-slate-200">Claude 3.5 Sonnet (Strongest)</option>
-                        <option value="gpt-4o" class="bg-slate-900 text-slate-200">GPT-4o (Omni)</option>
-                        <option value="gpt-4o-mini" class="bg-slate-900 text-slate-200">GPT-4o Mini (Fast)</option>
-                        <option value="claude-3-haiku" class="bg-slate-900 text-slate-200">Claude 3 Haiku</option>
-                        <option value="deepseek-chat" class="bg-slate-900 text-slate-200">DeepSeek Chat</option>
-                        <option value="meta-llama/llama-3.3-70b-instruct" class="bg-slate-900 text-slate-200">Llama 3.3 70B</option>
-                    </select>
-                </div>
-            </div>
+            <!-- System Prompt Toggle Button -->
+            <button onclick="toggleSystemDrawer()" title="Configure System Instructions" class="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 rounded-lg transition relative">
+                <i class="fa-solid fa-sliders text-xs md:text-sm"></i>
+                <span id="system-prompt-dot" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-brand-500 rounded-full border-2 border-slate-950"></span>
+            </button>
 
-            <!-- Settings Toggle Button -->
-            <button id="toggle-settings" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl border border-slate-800 transition-colors" title="Settings">
-                <i class="fa-solid fa-sliders text-base"></i>
+            <!-- Clear Chat Button -->
+            <button onclick="clearHistory()" title="Clear Conversation" class="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 rounded-lg transition">
+                <i class="fa-solid fa-trash-can text-xs md:text-sm"></i>
             </button>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <div class="flex flex-1 h-[calc(100vh-4rem)] overflow-hidden relative">
-
-        <!-- Overlay for mobile sidebar -->
-        <div id="sidebar-overlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-10 hidden md:hidden"></div>
-
-        <aside id="sidebar" class="absolute md:relative z-20 w-72 h-full bg-slate-900/95 border-r border-slate-800/80 flex flex-col transition-all duration-300 transform -translate-x-full md:translate-x-0 shrink-0">
-            <!-- Sidebar Header / New Chat -->
-            <div class="p-4 border-b border-slate-800/80 flex flex-col gap-2">
-                <button id="new-chat-btn" class="w-full py-2.5 px-4 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-medium text-sm rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-600/25 transition-all active:scale-[0.98]">
-                    <i class="fa-solid fa-plus text-xs"></i>
-                    <span>New Chat</span>
-                </button>
-            </div>
-
-            <!-- Conversations List -->
-            <div class="flex-1 overflow-y-auto p-3 space-y-1" id="chat-list">
-                <!-- Dynamically populated chats -->
-            </div>
-
-            <!-- Sidebar Footer / Action Buttons -->
-            <div class="p-3 border-t border-slate-800/80 bg-slate-950/40 space-y-1.5">
-                <button id="clear-chats-btn" class="w-full py-2 px-3 text-xs text-slate-400 hover:text-red-400 hover:bg-slate-800/60 rounded-lg flex items-center gap-2.5 transition-colors">
-                    <i class="fa-solid fa-trash-can text-xs"></i>
-                    <span>Clear All Conversations</span>
-                </button>
-                <button id="export-chat-btn" class="w-full py-2 px-3 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg flex items-center gap-2.5 transition-colors">
-                    <i class="fa-solid fa-file-export text-xs"></i>
-                    <span>Export Conversation</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- Settings Drawer Overlay -->
-        <div id="settings-drawer" class="absolute right-0 top-0 bottom-0 w-80 bg-slate-900/95 border-l border-slate-800 z-30 transform translate-x-full transition-transform duration-300 flex flex-col shadow-2xl glass-panel">
-            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-                <h2 class="font-semibold text-sm text-slate-200 flex items-center gap-2">
-                    <i class="fa-solid fa-sliders text-brand-400"></i> Model Settings
-                </h2>
-                <button id="close-settings" class="text-slate-400 hover:text-white p-1 rounded-lg">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <div class="p-4 flex-1 overflow-y-auto space-y-5 text-xs">
-                <!-- System Prompt Configuration -->
-                <div class="space-y-2">
-                    <label class="block font-medium text-slate-300 flex items-center justify-between">
-                        <span>System Prompt</span>
-                        <span class="text-[10px] text-slate-500">Global AI Instructions</span>
-                    </label>
-                    <textarea id="system-prompt" rows="5" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none resize-none transition-all" placeholder="You are a helpful, expert AI assistant..."></textarea>
+    <!-- System Prompt Drawer Overlay -->
+    <div id="system-drawer" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-30 hidden transition-opacity duration-300 opacity-0 flex justify-end">
+        <div class="w-full max-w-md bg-slate-900 border-l border-slate-800 h-full p-6 flex flex-col justify-between shadow-2xl">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-slate-100 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-brand-400"></i> System Prompt
+                    </h3>
+                    <button onclick="toggleSystemDrawer()" class="text-slate-400 hover:text-white p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
                 </div>
+                <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                    Customize the persona and operational guidelines for the AI assistant. This instruction is sent at the start of every message context.
+                </p>
 
-                <!-- Temperature Slider -->
-                <div class="space-y-2">
-                    <div class="flex justify-between items-center">
-                        <label class="font-medium text-slate-300">Temperature</label>
-                        <span id="temp-value" class="font-mono text-brand-400 font-bold bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20">0.7</span>
-                    </div>
-                    <input type="range" id="temperature" min="0" max="1" step="0.05" value="0.7" class="w-full accent-brand-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
-                    <div class="flex justify-between text-[10px] text-slate-500">
-                        <span>Precise (0.0)</span>
-                        <span>Creative (1.0)</span>
-                    </div>
-                </div>
-
-                <!-- Model Information Banner -->
-                <div class="p-3 bg-brand-950/30 border border-brand-500/20 rounded-xl text-slate-400 space-y-1">
-                    <div class="font-medium text-brand-300 flex items-center gap-1.5">
-                        <i class="fa-solid fa-circle-info"></i> Model Capabilities
-                    </div>
-                    <p class="text-[11px] leading-relaxed">
-                        Puter.js provides free, unified access to world-class LLMs including Claude 3.5 Sonnet and GPT-4o with real-time token streaming.
-                    </p>
-                </div>
+                <textarea 
+                    id="system-prompt-input" 
+                    rows="8" 
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 outline-none focus:border-brand-500 transition resize-none leading-relaxed"
+                    placeholder="Enter system instructions..."
+                >You are NexusAI, an extraordinarily capable, helpful, precise, and concise AI assistant powered by Pollinations.ai. You answer cleanly using Markdown formatting and clear code syntax where appropriate.</textarea>
             </div>
 
-            <div class="p-4 border-t border-slate-800 bg-slate-950/50">
-                <button id="save-settings-btn" class="w-full py-2 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl transition-colors text-xs">
-                    Apply Settings
+            <div class="space-y-2">
+                <button onclick="saveSystemPrompt()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs rounded-xl transition shadow-lg shadow-brand-500/20">
+                    Apply & Save Prompt
+                </button>
+                <button onclick="resetSystemPrompt()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-xl transition">
+                    Reset to Default
                 </button>
             </div>
         </div>
-
-        <!-- Chat Main Area -->
-        <main class="flex-1 flex flex-col h-full bg-slate-950 relative overflow-hidden">
-            <!-- Messages Container -->
-            <div id="messages-container" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth">
-                <!-- Empty State Banner -->
-                <div id="empty-state" class="h-full flex flex-col items-center justify-center text-center max-w-2xl mx-auto px-4 my-auto py-12">
-                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-purple-600 flex items-center justify-center text-3xl text-white shadow-xl shadow-brand-500/20 mb-6 animate-pulse">
-                        <i class="fa-solid fa-sparkles"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-slate-100 mb-2">How can I help you today?</h2>
-                    <p class="text-slate-400 text-sm mb-8 leading-relaxed">
-                        Powered by Puter.js v2. Choose from powerful models like Claude 3.5 Sonnet or GPT-4o for code generation, writing, analysis, and reasoning.
-                    </p>
-
-                    <!-- Quick Starter Prompts -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
-                        <button class="starter-prompt text-left p-3.5 glass-card hover:bg-slate-800/80 rounded-xl transition-all border border-slate-800 hover:border-brand-500/40 group">
-                            <div class="text-brand-400 font-medium text-xs mb-1 flex items-center justify-between">
-                                <span>Code Generation</span>
-                                <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                            </div>
-                            <div class="text-slate-300 text-xs">Write a Python script to perform async web scraping with error handling.</div>
-                        </button>
-                        <button class="starter-prompt text-left p-3.5 glass-card hover:bg-slate-800/80 rounded-xl transition-all border border-slate-800 hover:border-brand-500/40 group">
-                            <div class="text-brand-400 font-medium text-xs mb-1 flex items-center justify-between">
-                                <span>Creative Writing</span>
-                                <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                            </div>
-                            <div class="text-slate-300 text-xs">Draft an executive summary for a AI-driven productivity startup.</div>
-                        </button>
-                        <button class="starter-prompt text-left p-3.5 glass-card hover:bg-slate-800/80 rounded-xl transition-all border border-slate-800 hover:border-brand-500/40 group">
-                            <div class="text-brand-400 font-medium text-xs mb-1 flex items-center justify-between">
-                                <span>Technical Explanation</span>
-                                <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                            </div>
-                            <div class="text-slate-300 text-xs">Explain Quantum Computing concepts using everyday analogies.</div>
-                        </button>
-                        <button class="starter-prompt text-left p-3.5 glass-card hover:bg-slate-800/80 rounded-xl transition-all border border-slate-800 hover:border-brand-500/40 group">
-                            <div class="text-brand-400 font-medium text-xs mb-1 flex items-center justify-between">
-                                <span>Problem Solving</span>
-                                <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                            </div>
-                            <div class="text-slate-300 text-xs">Design a high-level system architecture for a real-time messaging app.</div>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Input Area Footer -->
-            <div class="p-4 border-t border-slate-800/80 bg-slate-900/80 backdrop-blur-md relative z-10 shrink-0">
-                <div class="max-w-4xl mx-auto space-y-2">
-                    <form id="chat-form" class="relative flex items-end gap-2 bg-slate-950 border border-slate-800 focus-within:border-brand-500/80 focus-within:ring-1 focus-within:ring-brand-500/80 rounded-2xl p-2.5 transition-all shadow-xl">
-                        
-                        <!-- Text Input -->
-                        <textarea 
-                            id="message-input" 
-                            rows="1" 
-                            placeholder="Send a message... (Shift + Enter for new line)" 
-                            class="w-full bg-transparent text-slate-100 placeholder-slate-500 text-sm outline-none resize-none max-h-36 py-1.5 px-2 font-normal"
-                        ></textarea>
-
-                        <!-- Action Buttons -->
-                        <div class="flex items-center gap-1.5 shrink-0">
-                            <!-- Stop Streaming Button (Hidden by default) -->
-                            <button type="button" id="stop-btn" class="hidden p-2.5 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-xl transition-colors border border-red-500/30" title="Stop Generation">
-                                <i class="fa-solid fa-square text-xs"></i>
-                            </button>
-
-                            <!-- Submit Button -->
-                            <button type="submit" id="send-btn" class="p-2.5 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 disabled:hover:bg-brand-600 text-white rounded-xl transition-all shadow-md shadow-brand-600/30">
-                                <i class="fa-solid fa-paper-plane text-xs"></i>
-                            </button>
-                        </div>
-                    </form>
-
-                    <!-- Status / Footer Info Bar -->
-                    <div class="flex items-center justify-between text-[11px] text-slate-500 px-1">
-                        <div class="flex items-center gap-2">
-                            <span>Model: <strong id="current-model-tag" class="text-slate-400 font-mono">claude-3-5-sonnet</strong></span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span id="char-counter">0 chars</span>
-                            <span>•</span>
-                            <button id="clear-current-chat" class="hover:text-slate-300 transition-colors">Clear Messages</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
     </div>
 
-    <!-- Notification Toast Container -->
-    <div id="toast-container" class="fixed bottom-20 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+    <!-- Chat Messages Container -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 max-w-4xl w-full mx-auto" id="chat-box">
+        <!-- Welcome Screen -->
+        <div id="welcome-state" class="text-center py-12 px-4 my-auto">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-purple-600 flex items-center justify-center text-3xl text-white mx-auto mb-4 shadow-xl shadow-brand-500/20">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-100 mb-2 tracking-tight">How can NexusAI help you today?</h2>
+            <p class="text-slate-400 text-xs md:text-sm max-w-md mx-auto leading-relaxed mb-8">
+                Connected directly to <span class="text-slate-200 font-medium">Pollinations.ai</span>. Select your model of choice above and start asking questions.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto text-left">
+                <button onclick="fillPrompt('Explain Quantum Computing and Qubits in simple terms')" class="p-3 bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl transition group">
+                    <div class="text-xs font-semibold text-slate-200 group-hover:text-brand-400 mb-1 flex items-center justify-between">
+                        <span>💡 Explain Concepts</span>
+                        <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition"></i>
+                    </div>
+                    <div class="text-[11px] text-slate-400">Quantum Computing & Qubits in plain terms</div>
+                </button>
+
+                <button onclick="fillPrompt('Write a complete Python script to scrape web titles using BeautifulSoup')" class="p-3 bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl transition group">
+                    <div class="text-xs font-semibold text-slate-200 group-hover:text-brand-400 mb-1 flex items-center justify-between">
+                        <span>💻 Python Coding</span>
+                        <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition"></i>
+                    </div>
+                    <div class="text-[11px] text-slate-400">Web scraper script with error handling</div>
+                </button>
+
+                <button onclick="fillPrompt('Compare DeepSeek V3 architecture vs standard Transformer models')" class="p-3 bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl transition group">
+                    <div class="text-xs font-semibold text-slate-200 group-hover:text-brand-400 mb-1 flex items-center justify-between">
+                        <span>🧠 Technical Analysis</span>
+                        <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition"></i>
+                    </div>
+                    <div class="text-[11px] text-slate-400">Compare DeepSeek architecture vs Transformers</div>
+                </button>
+
+                <button onclick="fillPrompt('Give me 5 actionable tips to improve focus and productivity when studying')" class="p-3 bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl transition group">
+                    <div class="text-xs font-semibold text-slate-200 group-hover:text-brand-400 mb-1 flex items-center justify-between">
+                        <span>🎯 Productivity Tips</span>
+                        <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition"></i>
+                    </div>
+                    <div class="text-[11px] text-slate-400">5 actionable tips to improve focus</div>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Input Footer -->
+    <footer class="border-t border-slate-800/80 glass-panel p-3 md:p-4 shrink-0 z-10">
+        <div class="max-w-4xl mx-auto space-y-2">
+            <!-- Toast Notification Container -->
+            <div id="toast" class="hidden fixed bottom-20 right-6 bg-slate-800 border border-slate-700 text-slate-200 px-4 py-2 rounded-xl text-xs shadow-2xl flex items-center gap-2 z-50">
+                <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400"></i>
+                <span id="toast-message">Notification message</span>
+            </div>
+
+            <form id="chat-form" class="relative flex items-center bg-slate-950 border border-slate-800 focus-within:border-brand-500/80 rounded-2xl p-2 transition shadow-xl">
+                <textarea 
+                    id="user-input" 
+                    rows="1" 
+                    placeholder="Ask anything... (Enter to send, Shift+Enter for new line)" 
+                    class="flex-1 bg-transparent text-slate-100 placeholder-slate-500 text-xs md:text-sm outline-none resize-none px-3 py-1.5 max-h-36 leading-relaxed"
+                ></textarea>
+
+                <div class="flex items-center gap-2 shrink-0">
+                    <button 
+                        type="submit" 
+                        id="send-btn" 
+                        class="p-2.5 bg-brand-600 hover:bg-brand-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition shadow-md shadow-brand-500/20 flex items-center justify-center w-10 h-10"
+                    >
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                    </button>
+                </div>
+            </form>
+
+            <div class="flex items-center justify-between text-[11px] text-slate-500 px-2">
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Pollinations API Ready</span>
+                </div>
+                <span>History: <span id="history-count">0</span> messages</span>
+            </div>
+        </div>
+    </footer>
 
     <script>
-        // Configuration & marked renderer setup
-        marked.use({
-            renderer: {
-                code(code, infostring) {
-                    const lang = (infostring || '').trim().split(' ')[0] || 'text';
-                    let highlighted = code;
+        // Global State
+        let chatHistory = [];
+        let systemPrompt = "You are NexusAI, an extraordinarily capable, helpful, precise, and concise AI assistant powered by Pollinations.ai. You answer cleanly using Markdown formatting and clear code syntax where appropriate.";
+        let isProcessing = false;
+
+        // DOM References
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        const chatForm = document.getElementById('chat-form');
+        const sendBtn = document.getElementById('send-btn');
+        const modelSelect = document.getElementById('model-select');
+        const welcomeState = document.getElementById('welcome-state');
+        const historyCount = document.getElementById('history-count');
+        const systemDrawer = document.getElementById('system-drawer');
+        const systemPromptInput = document.getElementById('system-prompt-input');
+
+        // Configure Marked Options
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
                     try {
-                        if (hljs && hljs.getLanguage(lang)) {
-                            highlighted = hljs.highlight(code, { language: lang }).value;
-                        } else if (hljs) {
-                            highlighted = hljs.highlightAuto(code).value;
-                        }
-                    } catch (e) {
-                        console.error("Highlight.js error:", e);
-                    }
-                    return `<div class="code-block-wrapper my-3 rounded-xl border border-slate-700/60 bg-slate-950/90 shadow-lg overflow-hidden">
-                        <div class="flex items-center justify-between px-3.5 py-1.5 bg-slate-900 border-b border-slate-800 text-xs font-mono text-slate-400">
-                            <span class="text-indigo-400 font-semibold uppercase tracking-wider">${lang}</span>
-                            <button onclick="copyCodeBlock(this)" class="hover:text-white bg-slate-800/80 hover:bg-slate-700 px-2 py-1 rounded transition text-[11px] flex items-center gap-1">
-                                <i class="fa-regular fa-copy"></i> <span>Copy code</span>
-                            </button>
-                        </div>
-                        <pre class="p-4 text-xs md:text-sm font-mono overflow-x-auto text-slate-200"><code>${highlighted}</code></pre>
-                    </div>`;
+                        return hljs.highlight(code, { language: lang }).value;
+                    } catch (e) {}
                 }
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: true
+        });
+
+        // Custom Renderer to wrap Code Blocks with Header & Copy Button
+        const renderer = new marked.Renderer();
+        renderer.code = function(code, language) {
+            const validLang = language || 'text';
+            const escapedCode = code.replace(/"/g, '&quot;');
+            return `
+                <div class="my-3 rounded-xl overflow-hidden border border-slate-800 bg-slate-950/90 shadow-md">
+                    <div class="bg-slate-900 border-b border-slate-800/80 px-4 py-1.5 flex items-center justify-between text-[11px] text-slate-400">
+                        <span class="font-mono text-brand-400 uppercase font-semibold">${validLang}</span>
+                        <button onclick="copyCode(this)" class="hover:text-slate-100 transition flex items-center gap-1 bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded border border-slate-700">
+                            <i class="fa-regular fa-copy"></i>
+                            <span>Copy</span>
+                        </button>
+                    </div>
+                    <pre class="p-4 overflow-x-auto text-xs text-slate-200 font-mono"><code>${hljs.highlightAuto(code).value}</code></pre>
+                </div>
+            `;
+        };
+        marked.use({ renderer });
+
+        // Auto-expand Textarea
+        userInput.addEventListener('input', () => {
+            userInput.style.height = 'auto';
+            userInput.style.height = Math.min(userInput.scrollHeight, 140) + 'px';
+        });
+
+        // Key Listener (Enter to Submit, Shift+Enter for Newline)
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
             }
         });
 
-        // App State
-        let state = {
-            chats: [],
-            currentChatId: null,
-            systemPrompt: "You are a helpful, smart, and precise AI assistant. You answer queries thoroughly using nicely formatted Markdown.",
-            temperature: 0.7,
-            selectedModel: "claude-3-5-sonnet",
-            isGenerating: false,
-            shouldStop: false
-        };
+        function fillPrompt(text) {
+            userInput.value = text;
+            userInput.dispatchEvent(new Event('input'));
+            userInput.focus();
+        }
 
-        // DOM Elements
-        const elements = {
-            messageInput: document.getElementById('message-input'),
-            chatForm: document.getElementById('chat-form'),
-            sendBtn: document.getElementById('send-btn'),
-            stopBtn: document.getElementById('stop-btn'),
-            messagesContainer: document.getElementById('messages-container'),
-            emptyState: document.getElementById('empty-state'),
-            chatList: document.getElementById('chat-list'),
-            modelSelect: document.getElementById('model-select'),
-            systemPrompt: document.getElementById('system-prompt'),
-            temperature: document.getElementById('temperature'),
-            tempValue: document.getElementById('temp-value'),
-            newChatBtn: document.getElementById('new-chat-btn'),
-            clearChatsBtn: document.getElementById('clear-chats-btn'),
-            clearCurrentChatBtn: document.getElementById('clear-current-chat'),
-            exportChatBtn: document.getElementById('export-chat-btn'),
-            toggleSidebarBtn: document.getElementById('toggle-sidebar'),
-            sidebar: document.getElementById('sidebar'),
-            sidebarOverlay: document.getElementById('sidebar-overlay'),
-            toggleSettingsBtn: document.getElementById('toggle-settings'),
-            closeSettingsBtn: document.getElementById('close-settings'),
-            saveSettingsBtn: document.getElementById('save-settings-btn'),
-            settingsDrawer: document.getElementById('settings-drawer'),
-            charCounter: document.getElementById('char-counter'),
-            currentModelTag: document.getElementById('current-model-tag')
-        };
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
 
-        // LocalStorage Logic
-        function loadState() {
-            try {
-                const savedState = localStorage.getItem('nexus_ai_state');
-                if (savedState) {
-                    const parsed = JSON.parse(savedState);
-                    state.chats = parsed.chats || [];
-                    state.currentChatId = parsed.currentChatId || null;
-                    state.systemPrompt = parsed.systemPrompt || state.systemPrompt;
-                    state.temperature = parsed.temperature !== undefined ? parsed.temperature : 0.7;
-                    state.selectedModel = parsed.selectedModel || "claude-3-5-sonnet";
-                }
-            } catch (e) {
-                console.error("Failed to load state from localStorage:", e);
-            }
-
-            // Sync UI
-            elements.systemPrompt.value = state.systemPrompt;
-            elements.temperature.value = state.temperature;
-            elements.tempValue.innerText = state.temperature;
-            elements.modelSelect.value = state.selectedModel;
-            elements.currentModelTag.innerText = state.selectedModel;
-
-            if (state.chats.length === 0) {
-                createNewChat();
+            toastMsg.textContent = message;
+            if (isError) {
+                toastIcon.className = "fa-solid fa-circle-exclamation text-red-400";
             } else {
-                if (!state.currentChatId || !state.chats.find(c => c.id === state.currentChatId)) {
-                    state.currentChatId = state.chats[0].id;
-                }
-                renderChatList();
-                renderMessages();
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400";
             }
+
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
         }
 
-        function saveState() {
-            try {
-                localStorage.setItem('nexus_ai_state', JSON.stringify({
-                    chats: state.chats,
-                    currentChatId: state.currentChatId,
-                    systemPrompt: state.systemPrompt,
-                    temperature: state.temperature,
-                    selectedModel: state.selectedModel
-                }));
-            } catch (e) {
-                console.error("Failed to save state to localStorage:", e);
-            }
-        }
-
-        function createNewChat() {
-            const newChat = {
-                id: 'chat_' + Date.now(),
-                title: 'New Conversation',
-                timestamp: Date.now(),
-                messages: []
-            };
-            state.chats.unshift(newChat);
-            state.currentChatId = newChat.id;
-            saveState();
-            renderChatList();
-            renderMessages();
-            elements.messageInput.focus();
-        }
-
-        function getCurrentChat() {
-            return state.chats.find(c => c.id === state.currentChatId);
-        }
-
-        function renderChatList() {
-            elements.chatList.innerHTML = '';
-            state.chats.forEach(chat => {
-                const isActive = chat.id === state.currentChatId;
-                const item = document.createElement('div');
-                item.className = `group flex items-center justify-between p-2.5 rounded-xl cursor-pointer text-xs font-medium transition-all ${
-                    isActive 
-                        ? 'bg-brand-600/20 text-brand-300 border border-brand-500/30' 
-                        : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 border border-transparent'
-                }`;
-                
-                item.innerHTML = `
-                    <div class="flex items-center gap-2.5 overflow-hidden flex-1">
-                        <i class="fa-regular fa-message text-xs shrink-0 ${isActive ? 'text-brand-400' : 'text-slate-500'}"></i>
-                        <span class="truncate">${escapeHtml(chat.title)}</span>
-                    </div>
-                    <button class="delete-chat-btn opacity-0 group-hover:opacity-100 hover:text-red-400 p-1 transition-opacity" title="Delete Chat">
-                        <i class="fa-solid fa-xmark text-xs"></i>
-                    </button>
-                `;
-
-                item.addEventListener('click', (e) => {
-                    if (!e.target.closest('.delete-chat-btn')) {
-                        state.currentChatId = chat.id;
-                        saveState();
-                        renderChatList();
-                        renderMessages();
-                        closeMobileSidebar();
-                    }
-                });
-
-                const deleteBtn = item.querySelector('.delete-chat-btn');
-                deleteBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    deleteChat(chat.id);
-                });
-
-                elements.chatList.appendChild(item);
-            });
-        }
-
-        function deleteChat(chatId) {
-            state.chats = state.chats.filter(c => c.id !== chatId);
-            if (state.chats.length === 0) {
-                createNewChat();
+        function toggleSystemDrawer() {
+            if (systemDrawer.classList.contains('hidden')) {
+                systemDrawer.classList.remove('hidden');
+                setTimeout(() => systemDrawer.classList.remove('opacity-0'), 10);
             } else {
-                if (state.currentChatId === chatId) {
-                    state.currentChatId = state.chats[0].id;
-                }
-                saveState();
-                renderChatList();
-                renderMessages();
+                systemDrawer.classList.add('opacity-0');
+                setTimeout(() => systemDrawer.classList.add('hidden'), 300);
             }
         }
 
-        function renderMessages() {
-            const chat = getCurrentChat();
-            if (!chat || chat.messages.length === 0) {
-                elements.messagesContainer.innerHTML = '';
-                elements.messagesContainer.appendChild(elements.emptyState);
-                elements.emptyState.classList.remove('hidden');
-                return;
-            }
-
-            elements.emptyState.classList.add('hidden');
-            elements.messagesContainer.innerHTML = '';
-
-            chat.messages.forEach((msg, idx) => {
-                appendMessageToUI(msg.role, msg.content, idx);
-            });
-
-            scrollToBottom();
+        function saveSystemPrompt() {
+            systemPrompt = systemPromptInput.value.trim();
+            toggleSystemDrawer();
+            showToast("System prompt updated!");
         }
 
-        function appendMessageToUI(role, content, index) {
+        function resetSystemPrompt() {
+            systemPromptInput.value = "You are NexusAI, an extraordinarily capable, helpful, precise, and concise AI assistant powered by Pollinations.ai. You answer cleanly using Markdown formatting and clear code syntax where appropriate.";
+            systemPrompt = systemPromptInput.value;
+            showToast("System prompt reset to default.");
+        }
+
+        function clearHistory() {
+            chatHistory = [];
+            historyCount.innerText = '0';
+            chatBox.innerHTML = '';
+            chatBox.appendChild(welcomeState);
+            welcomeState.classList.remove('hidden');
+            showToast("Chat history cleared.");
+        }
+
+        function copyCode(button) {
+            const pre = button.closest('.my-3').querySelector('pre code');
+            const textToCopy = pre.innerText;
+
+            // Fallback copy logic for iFrame compatibility
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy);
+            } else {
+                const textarea = document.createElement('textarea');
+                textarea.value = textToCopy;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+
+            const originalHTML = button.innerHTML;
+            button.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> <span class="text-emerald-400">Copied!</span>`;
+            setTimeout(() => {
+                button.innerHTML = originalHTML;
+            }, 2000);
+        }
+
+        function appendBubble(role, content = '') {
+            if (welcomeState && !welcomeState.classList.contains('hidden')) {
+                welcomeState.classList.add('hidden');
+            }
+
             const isUser = role === 'user';
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `flex flex-col ${isUser ? 'items-end' : 'items-start'} my-2 animate-fade-in`;
-            
-            const innerBubble = document.createElement('div');
-            innerBubble.className = `max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 text-sm shadow-md ${
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex flex-col ${isUser ? 'items-end' : 'items-start'} my-3 animate-fade-in`;
+
+            const avatarAndContent = document.createElement('div');
+            avatarAndContent.className = `flex gap-3 max-w-[92%] md:max-w-[82%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`;
+
+            // Avatar
+            const avatar = document.createElement('div');
+            avatar.className = `w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold shadow-md ${
                 isUser 
-                    ? 'bg-brand-600 text-white rounded-br-xs' 
-                    : 'glass-panel text-slate-100 rounded-bl-xs border border-slate-800'
+                    ? 'bg-gradient-to-tr from-brand-600 to-indigo-500 text-white' 
+                    : 'bg-slate-900 border border-slate-800 text-brand-400'
+            }`;
+            avatar.innerHTML = isUser ? '<i class="fa-solid fa-user"></i>' : '<i class="fa-solid fa-robot"></i>';
+
+            // Bubble Element
+            const bubble = document.createElement('div');
+            bubble.className = `rounded-2xl px-4 py-3 text-xs md:text-sm leading-relaxed ${
+                isUser 
+                    ? 'bg-brand-600 text-white rounded-tr-xs shadow-lg shadow-brand-500/10 whitespace-pre-wrap break-words' 
+                    : 'bg-slate-900 border border-slate-800/90 text-slate-200 rounded-tl-xs shadow-lg markdown-body break-words overflow-hidden'
             }`;
 
             if (isUser) {
-                innerBubble.innerText = content;
+                bubble.textContent = content;
+            } else if (content) {
+                bubble.innerHTML = marked.parse(content);
             } else {
-                const parsedContent = content ? marked.parse(content) : '';
-                innerBubble.innerHTML = `<div class="prose prose-invert max-w-none text-slate-200 leading-relaxed">${parsedContent}</div>`;
-            }
-
-            // Message Toolbar
-            const toolbar = document.createElement('div');
-            toolbar.className = `flex items-center gap-2 mt-1 text-[11px] text-slate-500 px-1`;
-            
-            if (!isUser) {
-                toolbar.innerHTML = `
-                    <button onclick="copyMessageText(this)" class="hover:text-slate-300 transition-colors flex items-center gap-1">
-                        <i class="fa-regular fa-copy text-[10px]"></i> Copy
-                    </button>
-                `;
-            }
-
-            msgDiv.appendChild(innerBubble);
-            if (!isUser && content) msgDiv.appendChild(toolbar);
-
-            elements.messagesContainer.appendChild(msgDiv);
-        }
-
-        async function handleChatSubmit(e) {
-            if (e) e.preventDefault();
-            const text = elements.messageInput.value.trim();
-            if (!text || state.isGenerating) return;
-
-            const chat = getCurrentChat();
-            if (!chat) return;
-
-            // Auto-update chat title on first message
-            if (chat.messages.length === 0) {
-                chat.title = text.length > 28 ? text.substring(0, 28) + '...' : text;
-                renderChatList();
-            }
-
-            // Add User Message
-            chat.messages.push({ role: 'user', content: text });
-            elements.messageInput.value = '';
-            adjustTextareaHeight();
-            saveState();
-            renderMessages();
-
-            // Set Generating State
-            setGeneratingState(true);
-
-            // Create Assistant Shell Message UI
-            const assistantMsgDiv = document.createElement('div');
-            assistantMsgDiv.className = 'flex flex-col items-start my-2';
-            
-            const bubble = document.createElement('div');
-            bubble.className = 'max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 text-sm glass-panel text-slate-100 rounded-bl-xs border border-slate-800 shadow-md';
-            
-            // Initial Typing Indicator
-            bubble.innerHTML = `
-                <div class="flex items-center gap-1.5 py-1">
-                    <span class="w-2 h-2 rounded-full bg-brand-400 typing-dot"></span>
-                    <span class="w-2 h-2 rounded-full bg-brand-400 typing-dot"></span>
-                    <span class="w-2 h-2 rounded-full bg-brand-400 typing-dot"></span>
-                </div>
-            `;
-
-            assistantMsgDiv.appendChild(bubble);
-            elements.messagesContainer.appendChild(assistantMsgDiv);
-            scrollToBottom();
-
-            // Prepare Messages Payload for Puter.js
-            const payload = [];
-            if (state.systemPrompt.trim()) {
-                payload.push({ role: 'system', content: state.systemPrompt.trim() });
-            }
-            chat.messages.forEach(m => payload.push({ role: m.role, content: m.content }));
-
-            let fullAssistantResponse = '';
-
-            try {
-                // Puter.js AI Chat Call with Streaming
-                const response = await puter.ai.chat(payload, {
-                    model: state.selectedModel,
-                    stream: true,
-                    temperature: parseFloat(state.temperature)
-                });
-
-                // Stream response loop
-                for await (const chunk of response) {
-                    if (state.shouldStop) {
-                        break;
-                    }
-                    if (chunk?.text) {
-                        fullAssistantResponse += chunk.text;
-                        bubble.innerHTML = `<div class="prose prose-invert max-w-none text-slate-200 leading-relaxed">${marked.parse(fullAssistantResponse)}</div>`;
-                        scrollToBottom();
-                    }
-                }
-
-                if (!fullAssistantResponse) {
-                    fullAssistantResponse = "*(No response generated)*";
-                    bubble.innerHTML = `<div class="prose prose-invert max-w-none text-slate-200">${marked.parse(fullAssistantResponse)}</div>`;
-                }
-
-                // Save Assistant Message
-                chat.messages.push({ role: 'assistant', content: fullAssistantResponse });
-                saveState();
-
-                // Add message toolbar
-                const toolbar = document.createElement('div');
-                toolbar.className = `flex items-center gap-2 mt-1 text-[11px] text-slate-500 px-1`;
-                toolbar.innerHTML = `
-                    <button onclick="copyMessageText(this)" class="hover:text-slate-300 transition-colors flex items-center gap-1">
-                        <i class="fa-regular fa-copy text-[10px]"></i> Copy
-                    </button>
-                `;
-                assistantMsgDiv.appendChild(toolbar);
-
-            } catch (error) {
-                console.error("Puter AI Chat Error:", error);
-                showToast("AI Error: " + (error.message || "Failed to generate response"), "error");
+                // Animated Loading State
                 bubble.innerHTML = `
-                    <div class="text-red-400 flex items-center gap-2 text-xs">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span>An error occurred while connecting to ${state.selectedModel}. Please try again.</span>
+                    <div class="flex items-center gap-2 py-1 px-1">
+                        <span class="w-2 h-2 rounded-full bg-brand-400 pulse-dot"></span>
+                        <span class="w-2 h-2 rounded-full bg-brand-400 pulse-dot"></span>
+                        <span class="w-2 h-2 rounded-full bg-brand-400 pulse-dot"></span>
                     </div>
                 `;
+            }
+
+            avatarAndContent.appendChild(avatar);
+            avatarAndContent.appendChild(bubble);
+            wrapper.appendChild(avatarAndContent);
+            chatBox.appendChild(wrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            return bubble;
+        }
+
+        async function fetchPollinationsResponse(payload) {
+            // Pollinations Text API POST endpoint
+            const endpoint = 'https://text.pollinations.ai/';
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Pollinations API HTTP Error: ${response.status} ${response.statusText}`);
+            }
+
+            // The Pollinations API returns plain text completion response
+            const textResult = await response.text();
+            return textResult;
+        }
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            if (!message || isProcessing) return;
+
+            // Set state to busy
+            isProcessing = true;
+            sendBtn.disabled = true;
+            userInput.value = '';
+            userInput.style.height = 'auto';
+
+            // Add user message to UI & History
+            appendBubble('user', message);
+            chatHistory.push({ role: 'user', content: message });
+            historyCount.innerText = chatHistory.length;
+
+            // Create Assistant Bubble Loader
+            const assistantBubble = appendBubble('assistant', '');
+            const selectedModel = modelSelect.value;
+
+            // Construct payload with system prompt included
+            const fullMessagesPayload = [
+                { role: 'system', content: systemPrompt },
+                ...chatHistory
+            ];
+
+            try {
+                const apiPayload = {
+                    messages: fullMessagesPayload,
+                    model: selectedModel,
+                    seed: Math.floor(Math.random() * 1000000)
+                };
+
+                const replyText = await fetchPollinationsResponse(apiPayload);
+
+                if (replyText) {
+                    assistantBubble.innerHTML = marked.parse(replyText);
+                    chatHistory.push({ role: 'assistant', content: replyText });
+                    historyCount.innerText = chatHistory.length;
+                } else {
+                    throw new Error("Received an empty response from Pollinations API.");
+                }
+
+            } catch (err) {
+                console.error("Pollinations AI Error:", err);
+                assistantBubble.parentElement.parentElement.remove(); // Remove failed loader bubble
+                
+                // Show inline error bubble
+                const errWrapper = document.createElement('div');
+                errWrapper.className = 'flex flex-col items-center my-3 w-full';
+                errWrapper.innerHTML = `
+                    <div class="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl p-4 text-xs max-w-lg w-full shadow-lg">
+                        <div class="font-bold flex items-center gap-2 text-red-400 mb-1">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Request Failed
+                        </div>
+                        <p class="leading-relaxed mb-2">${err.message || "Failed to reach Pollinations AI servers."}</p>
+                        <p class="text-[11px] text-red-400/80">Tip: Try selecting a different model from the top dropdown menu (e.g. GPT-4.1 or DeepSeek) and send again.</p>
+                    </div>
+                `;
+                chatBox.appendChild(errWrapper);
+                // Remove failed user message from history array so user can retry cleanly
+                chatHistory.pop();
+                historyCount.innerText = chatHistory.length;
             } finally {
-                setGeneratingState(false);
+                isProcessing = false;
+                sendBtn.disabled = false;
+                chatBox.scrollTop = chatBox.scrollHeight;
+                userInput.focus();
             }
-        }
-
-        function setGeneratingState(isGenerating) {
-            state.isGenerating = isGenerating;
-            state.shouldStop = false;
-
-            if (isGenerating) {
-                elements.sendBtn.classList.add('hidden');
-                elements.stopBtn.classList.remove('hidden');
-            } else {
-                elements.sendBtn.classList.remove('hidden');
-                elements.stopBtn.classList.add('hidden');
-            }
-        }
-
-        function scrollToBottom() {
-            elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
-        }
-
-        function adjustTextareaHeight() {
-            elements.messageInput.style.height = 'auto';
-            elements.messageInput.style.height = Math.min(elements.messageInput.scrollHeight, 144) + 'px';
-            elements.charCounter.innerText = `${elements.messageInput.value.length} chars`;
-        }
-
-        function copyCodeBlock(btn) {
-            const pre = btn.closest('.code-block-wrapper').querySelector('pre code');
-            const codeText = pre.innerText || pre.textContent;
-            
-            navigator.clipboard.writeText(codeText).then(() => {
-                const span = btn.querySelector('span');
-                const icon = btn.querySelector('i');
-                span.innerText = 'Copied!';
-                icon.className = 'fa-solid fa-check text-emerald-400';
-                setTimeout(() => {
-                    span.innerText = 'Copy code';
-                    icon.className = 'fa-regular fa-copy';
-                }, 2000);
-            }).catch(err => {
-                showToast("Failed to copy code", "error");
-            });
-        }
-
-        function copyMessageText(btn) {
-            const msgBubble = btn.closest('.flex-col').querySelector('.prose');
-            const text = msgBubble.innerText || msgBubble.textContent;
-
-            navigator.clipboard.writeText(text).then(() => {
-                btn.innerHTML = `<i class="fa-solid fa-check text-emerald-400 text-[10px]"></i> Copied!`;
-                setTimeout(() => {
-                    btn.innerHTML = `<i class="fa-regular fa-copy text-[10px]"></i> Copy`;
-                }, 2000);
-            }).catch(() => {
-                showToast("Failed to copy message", "error");
-            });
-        }
-
-        function exportConversation() {
-            const chat = getCurrentChat();
-            if (!chat || chat.messages.length === 0) {
-                showToast("No conversation to export!", "warning");
-                return;
-            }
-
-            let markdownExport = `# ${chat.title}\n*Exported on ${new Date().toLocaleString()}*\n\n---\n\n`;
-            chat.messages.forEach(m => {
-                const sender = m.role === 'user' ? '👤 User' : '🤖 Assistant';
-                markdownExport += `### ${sender}\n\n${m.content}\n\n---\n\n`;
-            });
-
-            const blob = new Blob([markdownExport], { type: 'text/markdown;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${chat.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_export.md`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast("Conversation exported successfully!");
-        }
-
-        function showToast(message, type = "info") {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            const borderColors = type === 'error' ? 'border-red-500/40 text-red-300' : 'border-brand-500/40 text-brand-200';
-            toast.className = `glass-panel ${borderColors} px-4 py-2.5 rounded-xl text-xs shadow-xl flex items-center gap-2 border animate-bounce`;
-            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation text-red-400' : 'fa-circle-info text-brand-400'}"></i> ${message}`;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        function escapeHtml(text) {
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
-
-        function closeMobileSidebar() {
-            elements.sidebar.classList.add('-translate-x-full');
-            elements.sidebarOverlay.classList.add('hidden');
-        }
-
-        // Event Listeners
-        elements.chatForm.addEventListener('submit', handleChatSubmit);
-        
-        elements.messageInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleChatSubmit();
-            }
-        });
-
-        elements.messageInput.addEventListener('input', adjustTextareaHeight);
-
-        elements.stopBtn.addEventListener('click', () => {
-            state.shouldStop = true;
-            setGeneratingState(false);
-        });
-
-        elements.modelSelect.addEventListener('change', (e) => {
-            state.selectedModel = e.target.value;
-            elements.currentModelTag.innerText = state.selectedModel;
-            saveState();
-            showToast(`Switched model to ${state.selectedModel}`);
-        });
-
-        elements.temperature.addEventListener('input', (e) => {
-            state.temperature = e.target.value;
-            elements.tempValue.innerText = state.temperature;
-        });
-
-        elements.newChatBtn.addEventListener('click', () => {
-            createNewChat();
-            closeMobileSidebar();
-        });
-
-        elements.clearChatsBtn.addEventListener('click', () => {
-            if (confirm("Are you sure you want to delete all conversations?")) {
-                state.chats = [];
-                createNewChat();
-                showToast("All conversations cleared");
-            }
-        });
-
-        elements.clearCurrentChatBtn.addEventListener('click', () => {
-            const chat = getCurrentChat();
-            if (chat) {
-                chat.messages = [];
-                saveState();
-                renderMessages();
-                showToast("Current chat messages cleared");
-            }
-        });
-
-        elements.exportChatBtn.addEventListener('click', exportConversation);
-
-        // Sidebar & Settings Toggles
-        elements.toggleSidebarBtn.addEventListener('click', () => {
-            elements.sidebar.classList.toggle('-translate-x-full');
-            elements.sidebarOverlay.classList.toggle('hidden');
-        });
-
-        elements.sidebarOverlay.addEventListener('click', closeMobileSidebar);
-
-        elements.toggleSettingsBtn.addEventListener('click', () => {
-            elements.settingsDrawer.classList.remove('translate-x-full');
-        });
-
-        elements.closeSettingsBtn.addEventListener('click', () => {
-            elements.settingsDrawer.classList.add('translate-x-full');
-        });
-
-        elements.saveSettingsBtn.addEventListener('click', () => {
-            state.systemPrompt = elements.systemPrompt.value;
-            state.temperature = parseFloat(elements.temperature.value);
-            saveState();
-            elements.settingsDrawer.classList.add('translate-x-full');
-            showToast("Settings applied");
-        });
-
-        // Starter Prompts delegate
-        document.addEventListener('click', (e) => {
-            const starterBtn = e.target.closest('.starter-prompt');
-            if (starterBtn) {
-                const promptText = starterBtn.querySelector('.text-slate-300').innerText;
-                elements.messageInput.value = promptText;
-                adjustTextareaHeight();
-                handleChatSubmit();
-            }
-        });
-
-        // Initial Load
-        window.addEventListener('DOMContentLoaded', () => {
-            loadState();
         });
     </script>
 </body>

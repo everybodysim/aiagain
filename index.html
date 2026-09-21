@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusAI - Puter.js AI Chatbot</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                            950: '#0f0e26'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Puter.js SDK (v2) -->
+    <script src="https://js.puter.com/v2/"></script>
+    
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Highlight.js for Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        code, pre {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(79, 70, 229, 0.4);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.7);
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        /* Typing indicator animation */
+        .typing-dot {
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        .prose pre {
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .prose p {
+            margin-bottom: 0.75rem;
+        }
+        .prose p:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 h-full overflow-hidden flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+    <header class="h-16 border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md px-4 flex items-center justify-between z-30 shrink-0">
+        <div class="flex items-center gap-3">
+            <button id="toggle-sidebar" class="md:hidden p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors" title="Toggle Sidebar">
+                <i class="fa-solid fa-bars text-lg"></i>
+            </button>
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                    <i class="fa-solid fa-robot text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base tracking-wide flex items-center gap-2">
+                        NexusAI
+                        <span class="text-[10px] uppercase font-semibold tracking-wider bg-brand-500/20 text-brand-300 border border-brand-500/30 px-2 py-0.5 rounded-full">Puter v2</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Header Controls -->
+        <div class="flex items-center gap-3">
+            <!-- Connection Status Badge -->
+            <div id="puter-status" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Puter Ready</span>
+            </div>
+
+            <!-- Model Selection Dropdown -->
+            <div class="relative">
+                <div class="flex items-center bg-slate-800/90 border border-slate-700/80 rounded-xl px-3 py-1.5 gap-2 shadow-inner">
+                    <i class="fa-solid fa-microchip text-brand-400 text-xs"></i>
+                    <select id="model-select" class="bg-transparent text-xs font-medium text-slate-200 outline-none cursor-pointer pr-1">
+                        <option value="claude-3-5-sonnet" class="bg-slate-900 text-slate-200">Claude 3.5 Sonnet (Strongest)</option>
+                        <option value="gpt-4o" class="bg-slate-900 text-slate-200">GPT-4o (Omni)</option>
+                        <option value="gpt-4o-mini" class="bg-slate-900 text-slate-200">GPT-4o Mini (Fast)</option>
+                        <option value="claude-3-haiku" class="bg-slate-900 text-slate-200">Claude 3 Haiku</option>
+                        <option value="deepseek-chat" class="bg-slate-900 text-slate-200">DeepSeek Chat</option>
+                        <option value="meta-llama/llama-3.3-70b-instruct" class="bg-slate-900 text-slate-200">Llama 3.3 70B</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Settings Toggle Button -->
+            <button id="toggle-settings" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl border border-slate-800 transition-colors" title="Settings">
+                <i class="fa-solid fa-sliders text-base"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="flex flex-1 h-[calc(100vh-4rem)] overflow-hidden relative">
+
+        <!-- Overlay for mobile sidebar -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-10 hidden md:hidden"></div>
+
+        <aside id="sidebar" class="absolute md:relative z-20 w-72 h-full bg-slate-900/95 border-r border-slate-800/80 flex flex-col transition-all duration-300 transform -translate-x-full md:translate-x-0 shrink-0">
+            <!-- Sidebar Header / New Chat -->
+            <div class="p-4 border-b border-slate-800/80 flex flex-col gap-2">
+                <button id="new-chat-btn" class="w-full py-2.5 px-4 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-medium text-sm rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-600/25 transition-all active:scale-[0.98]">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>New Chat</span>
+                </button>
+            </div>
+
+            <!-- Conversations List -->
+            <div class="flex-1 overflow-y-auto p-3 space-y-1" id="chat-list">
+                <!-- Dynamically populated chats -->
+            </div>
+
+            <!-- Sidebar Footer / Action Buttons -->
+            <div class="p-3 border-t border-slate-800/80 bg-slate-950/40 space-y-1.5">
+                <button id="clear-chats-btn" class="w-full py-2 px-3 text-xs text-slate-400 hover:text-red-400 hover:bg-slate-800/60 rounded-lg flex items-center gap-2.5 transition-colors">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                    <span>Clear All Conversations</span>
+                </button>
+                <button id="export-chat-btn" class="w-full py-2 px-3 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg flex items-center gap-2.5 transition-colors">
+                    <i class="fa-solid fa-file-export text-xs"></i>
+                    <span>Export Conversation</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Settings Drawer Overlay -->
+        <div id="settings-drawer" class="absolute right-0 top-0 bottom-0 w-80 bg-slate-900/95 border-l border-slate-800 z-30 transform translate-x-full transition-transform duration-300 flex flex-col shadow-2xl glass-panel">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <h2 class="font-semibold text-sm text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-brand-400"></i> Model Settings
+                </h2>
+                <button id="close-settings" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-4 flex-1 overflow-y-auto space-y-5 text-xs">
+                <!-- System Prompt Configuration -->
+                <div class="space-y-2">
+                    <label class="block font-medium text-slate-300 flex items-center justify-between">
+                        <span>System Prompt</span>
+                        <span class="text-[10px] text-slate-500">Global AI Instructions</span>
+                    </label>
+                    <textarea id="system-prompt" rows="5" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none resize-none transition-all" placeholder="You are a helpful, expert AI assistant..."></textarea>
+                </div>
+
+                <!-- Temperature Slider -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="font-medium text-slate-300">Temperature</label>
+                        <span id="temp-value" class="font-mono text-brand-400 font-bold bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20">0.7</span>
+                    </div>
+                    <input type="range" id="temperature" min="0" max="1" step="0.05" value="0.7" class="w-full accent-brand-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-[10px] text-slate-500">
+                        <span>Precise (0.0)</span>
+                        <span>Creative (1.0)</span>
+                    </div>
+                </div>
+
+                <!-- Model Information Banner -->
+                <div class="p-3 bg-brand-950/30 border border-brand-500/20 rounded-xl text-slate-400 space-y-1">
+                    <div class="font-medium text-brand-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-info"></i> Model Capabilities
+                    </div>
+                    <p class="text-[11px] leading-relaxed">
+                        Puter.js provides free, unified access to world-class LLMs including Claude 3.5 Sonnet and GPT-4o with real-time token streaming.
+                    </p>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-800 bg-slate-950/50">
+                <button id="save-settings-btn" class="w-full py-2 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl transition-colors text-xs">
+                    Apply Settings
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Main Area -->
+        <main class="flex-1 flex flex-col h-full bg-slate-950 relative overflow-hidden">
+            <!-- Messages Container -->
+            <div id="messages-container" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth">
+                <!-- Empty State Banner -->
+                <div id="empty-state" class="h-full flex flex-col items-center justify-center text-center max-w-2xl mx-auto px-4 my-auto py-12">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-purple-600 flex items-center justify-center text-3xl text-white shadow-xl shadow-brand-500/20 mb-6 animate-pulse">
+                        <i class="fa-solid fa-sparkles"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-100 mb-2">How can I help you today?</h2>
+                    <p class="text-slate-400 text-sm mb-8 leading-relaxed">
+                        Powered by Puter.js v2. Choose from powerful models like Claude 3.5 Sonnet or GPT-4o for code generation, writing, analysis, and reasoning.
+                    </p>
+
+                    <!-- Quick Starter Prompts -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+                        <button class="starter-prompt text-left p-3.5 glass-card hover:bg-slate-800/80 rounded-xl transition-all border border-slate-800 hover:border-brand-500/40 group">
+                            <div class="text-brand-400 font-medium text-xs mb-1 flex items-center justify-between">
+                                <span>Code Generation</span>
+                                <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                            </div>
+                            <div class="text-slate-300 text-xs">Write a Python script to perform async web scraping with error handling.</div>
+                        </button>
+                        <button class="starter-prompt text-left p-3.5 glass-card hover:bg-slate-800/80 rounded-xl transition-all border border-slate-800 hover:border-brand-500/40 group">
+                            <div class="text-brand-400 font-medium text-xs mb-1 flex items-center justify-between">
+                                <span>Creative Writing</span>
+                                <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                            </div>
+                            <div class="text-slate-300 text-xs">Draft an executive summary for a AI-driven productivity startup.</div>
+                        </button>
+                        <button class="starter-prompt text-left p-3.5 glass-card hover:bg-slate-800/80 rounded-xl transition-all border border-slate-800 hover:border-brand-500/40 group">
+                            <div class="text-brand-400 font-medium text-xs mb-1 flex items-center justify-between">
+                                <span>Technical Explanation</span>
+                                <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                            </div>
+                            <div class="text-slate-300 text-xs">Explain Quantum Computing concepts using everyday analogies.</div>
+                        </button>
+                        <button class="starter-prompt text-left p-3.5 glass-card hover:bg-slate-800/80 rounded-xl transition-all border border-slate-800 hover:border-brand-500/40 group">
+                            <div class="text-brand-400 font-medium text-xs mb-1 flex items-center justify-between">
+                                <span>Problem Solving</span>
+                                <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                            </div>
+                            <div class="text-slate-300 text-xs">Design a high-level system architecture for a real-time messaging app.</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area Footer -->
+            <div class="p-4 border-t border-slate-800/80 bg-slate-900/80 backdrop-blur-md relative z-10 shrink-0">
+                <div class="max-w-4xl mx-auto space-y-2">
+                    <form id="chat-form" class="relative flex items-end gap-2 bg-slate-950 border border-slate-800 focus-within:border-brand-500/80 focus-within:ring-1 focus-within:ring-brand-500/80 rounded-2xl p-2.5 transition-all shadow-xl">
+                        
+                        <!-- Text Input -->
+                        <textarea 
+                            id="message-input" 
+                            rows="1" 
+                            placeholder="Send a message... (Shift + Enter for new line)" 
+                            class="w-full bg-transparent text-slate-100 placeholder-slate-500 text-sm outline-none resize-none max-h-36 py-1.5 px-2 font-normal"
+                        ></textarea>
+
+                        <!-- Action Buttons -->
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <!-- Stop Streaming Button (Hidden by default) -->
+                            <button type="button" id="stop-btn" class="hidden p-2.5 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-xl transition-colors border border-red-500/30" title="Stop Generation">
+                                <i class="fa-solid fa-square text-xs"></i>
+                            </button>
+
+                            <!-- Submit Button -->
+                            <button type="submit" id="send-btn" class="p-2.5 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 disabled:hover:bg-brand-600 text-white rounded-xl transition-all shadow-md shadow-brand-600/30">
+                                <i class="fa-solid fa-paper-plane text-xs"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Status / Footer Info Bar -->
+                    <div class="flex items-center justify-between text-[11px] text-slate-500 px-1">
+                        <div class="flex items-center gap-2">
+                            <span>Model: <strong id="current-model-tag" class="text-slate-400 font-mono">claude-3-5-sonnet</strong></span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="char-counter">0 chars</span>
+                            <span>•</span>
+                            <button id="clear-current-chat" class="hover:text-slate-300 transition-colors">Clear Messages</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container" class="fixed bottom-20 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        // Configuration & marked renderer setup
+        marked.use({
+            renderer: {
+                code(code, infostring) {
+                    const lang = (infostring || '').trim().split(' ')[0] || 'text';
+                    let highlighted = code;
+                    try {
+                        if (hljs && hljs.getLanguage(lang)) {
+                            highlighted = hljs.highlight(code, { language: lang }).value;
+                        } else if (hljs) {
+                            highlighted = hljs.highlightAuto(code).value;
+                        }
+                    } catch (e) {
+                        console.error("Highlight.js error:", e);
+                    }
+                    return `<div class="code-block-wrapper my-3 rounded-xl border border-slate-700/60 bg-slate-950/90 shadow-lg overflow-hidden">
+                        <div class="flex items-center justify-between px-3.5 py-1.5 bg-slate-900 border-b border-slate-800 text-xs font-mono text-slate-400">
+                            <span class="text-indigo-400 font-semibold uppercase tracking-wider">${lang}</span>
+                            <button onclick="copyCodeBlock(this)" class="hover:text-white bg-slate-800/80 hover:bg-slate-700 px-2 py-1 rounded transition text-[11px] flex items-center gap-1">
+                                <i class="fa-regular fa-copy"></i> <span>Copy code</span>
+                            </button>
+                        </div>
+                        <pre class="p-4 text-xs md:text-sm font-mono overflow-x-auto text-slate-200"><code>${highlighted}</code></pre>
+                    </div>`;
+                }
+            }
+        });
+
+        // App State
+        let state = {
+            chats: [],
+            currentChatId: null,
+            systemPrompt: "You are a helpful, smart, and precise AI assistant. You answer queries thoroughly using nicely formatted Markdown.",
+            temperature: 0.7,
+            selectedModel: "claude-3-5-sonnet",
+            isGenerating: false,
+            shouldStop: false
+        };
+
+        // DOM Elements
+        const elements = {
+            messageInput: document.getElementById('message-input'),
+            chatForm: document.getElementById('chat-form'),
+            sendBtn: document.getElementById('send-btn'),
+            stopBtn: document.getElementById('stop-btn'),
+            messagesContainer: document.getElementById('messages-container'),
+            emptyState: document.getElementById('empty-state'),
+            chatList: document.getElementById('chat-list'),
+            modelSelect: document.getElementById('model-select'),
+            systemPrompt: document.getElementById('system-prompt'),
+            temperature: document.getElementById('temperature'),
+            tempValue: document.getElementById('temp-value'),
+            newChatBtn: document.getElementById('new-chat-btn'),
+            clearChatsBtn: document.getElementById('clear-chats-btn'),
+            clearCurrentChatBtn: document.getElementById('clear-current-chat'),
+            exportChatBtn: document.getElementById('export-chat-btn'),
+            toggleSidebarBtn: document.getElementById('toggle-sidebar'),
+            sidebar: document.getElementById('sidebar'),
+            sidebarOverlay: document.getElementById('sidebar-overlay'),
+            toggleSettingsBtn: document.getElementById('toggle-settings'),
+            closeSettingsBtn: document.getElementById('close-settings'),
+            saveSettingsBtn: document.getElementById('save-settings-btn'),
+            settingsDrawer: document.getElementById('settings-drawer'),
+            charCounter: document.getElementById('char-counter'),
+            currentModelTag: document.getElementById('current-model-tag')
+        };
+
+        // LocalStorage Logic
+        function loadState() {
+            try {
+                const savedState = localStorage.getItem('nexus_ai_state');
+                if (savedState) {
+                    const parsed = JSON.parse(savedState);
+                    state.chats = parsed.chats || [];
+                    state.currentChatId = parsed.currentChatId || null;
+                    state.systemPrompt = parsed.systemPrompt || state.systemPrompt;
+                    state.temperature = parsed.temperature !== undefined ? parsed.temperature : 0.7;
+                    state.selectedModel = parsed.selectedModel || "claude-3-5-sonnet";
+                }
+            } catch (e) {
+                console.error("Failed to load state from localStorage:", e);
+            }
+
+            // Sync UI
+            elements.systemPrompt.value = state.systemPrompt;
+            elements.temperature.value = state.temperature;
+            elements.tempValue.innerText = state.temperature;
+            elements.modelSelect.value = state.selectedModel;
+            elements.currentModelTag.innerText = state.selectedModel;
+
+            if (state.chats.length === 0) {
+                createNewChat();
+            } else {
+                if (!state.currentChatId || !state.chats.find(c => c.id === state.currentChatId)) {
+                    state.currentChatId = state.chats[0].id;
+                }
+                renderChatList();
+                renderMessages();
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem('nexus_ai_state', JSON.stringify({
+                    chats: state.chats,
+                    currentChatId: state.currentChatId,
+                    systemPrompt: state.systemPrompt,
+                    temperature: state.temperature,
+                    selectedModel: state.selectedModel
+                }));
+            } catch (e) {
+                console.error("Failed to save state to localStorage:", e);
+            }
+        }
+
+        function createNewChat() {
+            const newChat = {
+                id: 'chat_' + Date.now(),
+                title: 'New Conversation',
+                timestamp: Date.now(),
+                messages: []
+            };
+            state.chats.unshift(newChat);
+            state.currentChatId = newChat.id;
+            saveState();
+            renderChatList();
+            renderMessages();
+            elements.messageInput.focus();
+        }
+
+        function getCurrentChat() {
+            return state.chats.find(c => c.id === state.currentChatId);
+        }
+
+        function renderChatList() {
+            elements.chatList.innerHTML = '';
+            state.chats.forEach(chat => {
+                const isActive = chat.id === state.currentChatId;
+                const item = document.createElement('div');
+                item.className = `group flex items-center justify-between p-2.5 rounded-xl cursor-pointer text-xs font-medium transition-all ${
+                    isActive 
+                        ? 'bg-brand-600/20 text-brand-300 border border-brand-500/30' 
+                        : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 border border-transparent'
+                }`;
+                
+                item.innerHTML = `
+                    <div class="flex items-center gap-2.5 overflow-hidden flex-1">
+                        <i class="fa-regular fa-message text-xs shrink-0 ${isActive ? 'text-brand-400' : 'text-slate-500'}"></i>
+                        <span class="truncate">${escapeHtml(chat.title)}</span>
+                    </div>
+                    <button class="delete-chat-btn opacity-0 group-hover:opacity-100 hover:text-red-400 p-1 transition-opacity" title="Delete Chat">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                `;
+
+                item.addEventListener('click', (e) => {
+                    if (!e.target.closest('.delete-chat-btn')) {
+                        state.currentChatId = chat.id;
+                        saveState();
+                        renderChatList();
+                        renderMessages();
+                        closeMobileSidebar();
+                    }
+                });
+
+                const deleteBtn = item.querySelector('.delete-chat-btn');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteChat(chat.id);
+                });
+
+                elements.chatList.appendChild(item);
+            });
+        }
+
+        function deleteChat(chatId) {
+            state.chats = state.chats.filter(c => c.id !== chatId);
+            if (state.chats.length === 0) {
+                createNewChat();
+            } else {
+                if (state.currentChatId === chatId) {
+                    state.currentChatId = state.chats[0].id;
+                }
+                saveState();
+                renderChatList();
+                renderMessages();
+            }
+        }
+
+        function renderMessages() {
+            const chat = getCurrentChat();
+            if (!chat || chat.messages.length === 0) {
+                elements.messagesContainer.innerHTML = '';
+                elements.messagesContainer.appendChild(elements.emptyState);
+                elements.emptyState.classList.remove('hidden');
+                return;
+            }
+
+            elements.emptyState.classList.add('hidden');
+            elements.messagesContainer.innerHTML = '';
+
+            chat.messages.forEach((msg, idx) => {
+                appendMessageToUI(msg.role, msg.content, idx);
+            });
+
+            scrollToBottom();
+        }
+
+        function appendMessageToUI(role, content, index) {
+            const isUser = role === 'user';
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `flex flex-col ${isUser ? 'items-end' : 'items-start'} my-2 animate-fade-in`;
+            
+            const innerBubble = document.createElement('div');
+            innerBubble.className = `max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 text-sm shadow-md ${
+                isUser 
+                    ? 'bg-brand-600 text-white rounded-br-xs' 
+                    : 'glass-panel text-slate-100 rounded-bl-xs border border-slate-800'
+            }`;
+
+            if (isUser) {
+                innerBubble.innerText = content;
+            } else {
+                const parsedContent = content ? marked.parse(content) : '';
+                innerBubble.innerHTML = `<div class="prose prose-invert max-w-none text-slate-200 leading-relaxed">${parsedContent}</div>`;
+            }
+
+            // Message Toolbar
+            const toolbar = document.createElement('div');
+            toolbar.className = `flex items-center gap-2 mt-1 text-[11px] text-slate-500 px-1`;
+            
+            if (!isUser) {
+                toolbar.innerHTML = `
+                    <button onclick="copyMessageText(this)" class="hover:text-slate-300 transition-colors flex items-center gap-1">
+                        <i class="fa-regular fa-copy text-[10px]"></i> Copy
+                    </button>
+                `;
+            }
+
+            msgDiv.appendChild(innerBubble);
+            if (!isUser && content) msgDiv.appendChild(toolbar);
+
+            elements.messagesContainer.appendChild(msgDiv);
+        }
+
+        async function handleChatSubmit(e) {
+            if (e) e.preventDefault();
+            const text = elements.messageInput.value.trim();
+            if (!text || state.isGenerating) return;
+
+            const chat = getCurrentChat();
+            if (!chat) return;
+
+            // Auto-update chat title on first message
+            if (chat.messages.length === 0) {
+                chat.title = text.length > 28 ? text.substring(0, 28) + '...' : text;
+                renderChatList();
+            }
+
+            // Add User Message
+            chat.messages.push({ role: 'user', content: text });
+            elements.messageInput.value = '';
+            adjustTextareaHeight();
+            saveState();
+            renderMessages();
+
+            // Set Generating State
+            setGeneratingState(true);
+
+            // Create Assistant Shell Message UI
+            const assistantMsgDiv = document.createElement('div');
+            assistantMsgDiv.className = 'flex flex-col items-start my-2';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 text-sm glass-panel text-slate-100 rounded-bl-xs border border-slate-800 shadow-md';
+            
+            // Initial Typing Indicator
+            bubble.innerHTML = `
+                <div class="flex items-center gap-1.5 py-1">
+                    <span class="w-2 h-2 rounded-full bg-brand-400 typing-dot"></span>
+                    <span class="w-2 h-2 rounded-full bg-brand-400 typing-dot"></span>
+                    <span class="w-2 h-2 rounded-full bg-brand-400 typing-dot"></span>
+                </div>
+            `;
+
+            assistantMsgDiv.appendChild(bubble);
+            elements.messagesContainer.appendChild(assistantMsgDiv);
+            scrollToBottom();
+
+            // Prepare Messages Payload for Puter.js
+            const payload = [];
+            if (state.systemPrompt.trim()) {
+                payload.push({ role: 'system', content: state.systemPrompt.trim() });
+            }
+            chat.messages.forEach(m => payload.push({ role: m.role, content: m.content }));
+
+            let fullAssistantResponse = '';
+
+            try {
+                // Puter.js AI Chat Call with Streaming
+                const response = await puter.ai.chat(payload, {
+                    model: state.selectedModel,
+                    stream: true,
+                    temperature: parseFloat(state.temperature)
+                });
+
+                // Stream response loop
+                for await (const chunk of response) {
+                    if (state.shouldStop) {
+                        break;
+                    }
+                    if (chunk?.text) {
+                        fullAssistantResponse += chunk.text;
+                        bubble.innerHTML = `<div class="prose prose-invert max-w-none text-slate-200 leading-relaxed">${marked.parse(fullAssistantResponse)}</div>`;
+                        scrollToBottom();
+                    }
+                }
+
+                if (!fullAssistantResponse) {
+                    fullAssistantResponse = "*(No response generated)*";
+                    bubble.innerHTML = `<div class="prose prose-invert max-w-none text-slate-200">${marked.parse(fullAssistantResponse)}</div>`;
+                }
+
+                // Save Assistant Message
+                chat.messages.push({ role: 'assistant', content: fullAssistantResponse });
+                saveState();
+
+                // Add message toolbar
+                const toolbar = document.createElement('div');
+                toolbar.className = `flex items-center gap-2 mt-1 text-[11px] text-slate-500 px-1`;
+                toolbar.innerHTML = `
+                    <button onclick="copyMessageText(this)" class="hover:text-slate-300 transition-colors flex items-center gap-1">
+                        <i class="fa-regular fa-copy text-[10px]"></i> Copy
+                    </button>
+                `;
+                assistantMsgDiv.appendChild(toolbar);
+
+            } catch (error) {
+                console.error("Puter AI Chat Error:", error);
+                showToast("AI Error: " + (error.message || "Failed to generate response"), "error");
+                bubble.innerHTML = `
+                    <div class="text-red-400 flex items-center gap-2 text-xs">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>An error occurred while connecting to ${state.selectedModel}. Please try again.</span>
+                    </div>
+                `;
+            } finally {
+                setGeneratingState(false);
+            }
+        }
+
+        function setGeneratingState(isGenerating) {
+            state.isGenerating = isGenerating;
+            state.shouldStop = false;
+
+            if (isGenerating) {
+                elements.sendBtn.classList.add('hidden');
+                elements.stopBtn.classList.remove('hidden');
+            } else {
+                elements.sendBtn.classList.remove('hidden');
+                elements.stopBtn.classList.add('hidden');
+            }
+        }
+
+        function scrollToBottom() {
+            elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
+        }
+
+        function adjustTextareaHeight() {
+            elements.messageInput.style.height = 'auto';
+            elements.messageInput.style.height = Math.min(elements.messageInput.scrollHeight, 144) + 'px';
+            elements.charCounter.innerText = `${elements.messageInput.value.length} chars`;
+        }
+
+        function copyCodeBlock(btn) {
+            const pre = btn.closest('.code-block-wrapper').querySelector('pre code');
+            const codeText = pre.innerText || pre.textContent;
+            
+            navigator.clipboard.writeText(codeText).then(() => {
+                const span = btn.querySelector('span');
+                const icon = btn.querySelector('i');
+                span.innerText = 'Copied!';
+                icon.className = 'fa-solid fa-check text-emerald-400';
+                setTimeout(() => {
+                    span.innerText = 'Copy code';
+                    icon.className = 'fa-regular fa-copy';
+                }, 2000);
+            }).catch(err => {
+                showToast("Failed to copy code", "error");
+            });
+        }
+
+        function copyMessageText(btn) {
+            const msgBubble = btn.closest('.flex-col').querySelector('.prose');
+            const text = msgBubble.innerText || msgBubble.textContent;
+
+            navigator.clipboard.writeText(text).then(() => {
+                btn.innerHTML = `<i class="fa-solid fa-check text-emerald-400 text-[10px]"></i> Copied!`;
+                setTimeout(() => {
+                    btn.innerHTML = `<i class="fa-regular fa-copy text-[10px]"></i> Copy`;
+                }, 2000);
+            }).catch(() => {
+                showToast("Failed to copy message", "error");
+            });
+        }
+
+        function exportConversation() {
+            const chat = getCurrentChat();
+            if (!chat || chat.messages.length === 0) {
+                showToast("No conversation to export!", "warning");
+                return;
+            }
+
+            let markdownExport = `# ${chat.title}\n*Exported on ${new Date().toLocaleString()}*\n\n---\n\n`;
+            chat.messages.forEach(m => {
+                const sender = m.role === 'user' ? '👤 User' : '🤖 Assistant';
+                markdownExport += `### ${sender}\n\n${m.content}\n\n---\n\n`;
+            });
+
+            const blob = new Blob([markdownExport], { type: 'text/markdown;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${chat.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_export.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast("Conversation exported successfully!");
+        }
+
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const borderColors = type === 'error' ? 'border-red-500/40 text-red-300' : 'border-brand-500/40 text-brand-200';
+            toast.className = `glass-panel ${borderColors} px-4 py-2.5 rounded-xl text-xs shadow-xl flex items-center gap-2 border animate-bounce`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation text-red-400' : 'fa-circle-info text-brand-400'}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function closeMobileSidebar() {
+            elements.sidebar.classList.add('-translate-x-full');
+            elements.sidebarOverlay.classList.add('hidden');
+        }
+
+        // Event Listeners
+        elements.chatForm.addEventListener('submit', handleChatSubmit);
+        
+        elements.messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleChatSubmit();
+            }
+        });
+
+        elements.messageInput.addEventListener('input', adjustTextareaHeight);
+
+        elements.stopBtn.addEventListener('click', () => {
+            state.shouldStop = true;
+            setGeneratingState(false);
+        });
+
+        elements.modelSelect.addEventListener('change', (e) => {
+            state.selectedModel = e.target.value;
+            elements.currentModelTag.innerText = state.selectedModel;
+            saveState();
+            showToast(`Switched model to ${state.selectedModel}`);
+        });
+
+        elements.temperature.addEventListener('input', (e) => {
+            state.temperature = e.target.value;
+            elements.tempValue.innerText = state.temperature;
+        });
+
+        elements.newChatBtn.addEventListener('click', () => {
+            createNewChat();
+            closeMobileSidebar();
+        });
+
+        elements.clearChatsBtn.addEventListener('click', () => {
+            if (confirm("Are you sure you want to delete all conversations?")) {
+                state.chats = [];
+                createNewChat();
+                showToast("All conversations cleared");
+            }
+        });
+
+        elements.clearCurrentChatBtn.addEventListener('click', () => {
+            const chat = getCurrentChat();
+            if (chat) {
+                chat.messages = [];
+                saveState();
+                renderMessages();
+                showToast("Current chat messages cleared");
+            }
+        });
+
+        elements.exportChatBtn.addEventListener('click', exportConversation);
+
+        // Sidebar & Settings Toggles
+        elements.toggleSidebarBtn.addEventListener('click', () => {
+            elements.sidebar.classList.toggle('-translate-x-full');
+            elements.sidebarOverlay.classList.toggle('hidden');
+        });
+
+        elements.sidebarOverlay.addEventListener('click', closeMobileSidebar);
+
+        elements.toggleSettingsBtn.addEventListener('click', () => {
+            elements.settingsDrawer.classList.remove('translate-x-full');
+        });
+
+        elements.closeSettingsBtn.addEventListener('click', () => {
+            elements.settingsDrawer.classList.add('translate-x-full');
+        });
+
+        elements.saveSettingsBtn.addEventListener('click', () => {
+            state.systemPrompt = elements.systemPrompt.value;
+            state.temperature = parseFloat(elements.temperature.value);
+            saveState();
+            elements.settingsDrawer.classList.add('translate-x-full');
+            showToast("Settings applied");
+        });
+
+        // Starter Prompts delegate
+        document.addEventListener('click', (e) => {
+            const starterBtn = e.target.closest('.starter-prompt');
+            if (starterBtn) {
+                const promptText = starterBtn.querySelector('.text-slate-300').innerText;
+                elements.messageInput.value = promptText;
+                adjustTextareaHeight();
+                handleChatSubmit();
+            }
+        });
+
+        // Initial Load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadState();
+        });
+    </script>
+</body>
+</html>

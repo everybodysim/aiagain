@@ -3,109 +3,98 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Puter AI Connection Test</title>
+<title>Puter AI Authentication Test</title>
 <style>
-  :root{color-scheme:dark;font-family:system-ui,sans-serif}
-  body{margin:0;background:#0b1020;color:#e8edf7;min-height:100vh;display:grid;place-items:center;padding:20px}
-  main{width:min(850px,100%);background:#121a2e;border:1px solid #283653;border-radius:18px;padding:24px;box-sizing:border-box}
-  h1{margin:0 0 8px;font-size:1.6rem}p{color:#aebbd3;line-height:1.5}
-  button,select,textarea{font:inherit;border-radius:10px;border:1px solid #344565;background:#0c1427;color:#edf3ff;padding:11px}
-  button{cursor:pointer;background:#2563eb;border-color:#2563eb;font-weight:650}
-  button:disabled{opacity:.55;cursor:wait}
-  textarea{width:100%;box-sizing:border-box;min-height:95px;resize:vertical;margin:8px 0 12px}
-  select{max-width:100%;width:100%;margin:6px 0 12px}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .row button{flex:1}
-  #status{padding:12px;background:#0c1427;border:1px solid #283653;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere;margin:14px 0}
-  #output{white-space:pre-wrap;overflow-wrap:anywhere;background:#0c1427;border-radius:10px;padding:14px;min-height:90px}
-  small{color:#aebbd3}
+:root{color-scheme:dark;font-family:system-ui,sans-serif}
+body{margin:0;background:#0b1020;color:#e8edf7;min-height:100vh;display:grid;place-items:center;padding:20px}
+main{width:min(850px,100%);background:#121a2e;border:1px solid #283653;border-radius:18px;padding:24px;box-sizing:border-box}
+h1{margin:0 0 8px;font-size:1.6rem}p{color:#aebbd3;line-height:1.5}
+button,select,textarea{font:inherit;border-radius:10px;border:1px solid #344565;background:#0c1427;color:#edf3ff;padding:11px}
+button{cursor:pointer;background:#2563eb;border-color:#2563eb;font-weight:650}
+button:disabled{opacity:.55;cursor:wait}
+textarea{width:100%;box-sizing:border-box;min-height:95px;resize:vertical;margin:8px 0 12px}
+select{max-width:100%;width:100%;margin:6px 0 12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row button{flex:1}
+#status{padding:12px;background:#0c1427;border:1px solid #283653;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere;margin:14px 0}
+#output{white-space:pre-wrap;overflow-wrap:anywhere;background:#0c1427;border-radius:10px;padding:14px;min-height:90px}
+small{color:#aebbd3}
 </style>
 </head>
-<body>
-<main>
-  <h1>Puter AI connection test</h1>
-  <p>This checks whether the browser can load the Puter.js package from esm.sh, retrieve Puter's model catalogue, and send one short AI request. It does not need an Anthropic API key. It may still require Puter sign-in or a usage allowance.</p>
-  <div id="status">Starting…</div>
-  <label for="model">Model</label>
-  <select id="model" disabled><option>Loading models…</option></select>
-  <label for="prompt">Test prompt</label>
-  <textarea id="prompt">In one sentence, explain what a NOT gate does.</textarea>
-  <div class="row">
-    <button id="load">Retry loading models</button>
-    <button id="send" disabled>Send test prompt</button>
-  </div>
-  <h2>Response</h2>
-  <div id="output">No response yet.</div>
-  <p><small>Privacy note: the prompt is sent to Puter and the selected model provider when you click Send. Don't paste passwords, private information, or secret API keys here.</small></p>
+<body><main>
+<h1>Puter AI authentication test</h1>
+<p>The library and model catalogue already worked in your previous test. This version adds an explicit Puter sign-in button, then checks whether an authenticated AI request succeeds.</p>
+<div id="status">Loading Puter.js package…</div>
+<div class="row">
+<button id="signin" disabled>Sign in with Puter</button>
+<button id="check" disabled>Check sign-in status</button>
+</div>
+<label for="model">Model</label>
+<select id="model" disabled><option>Loading models…</option></select>
+<label for="prompt">Test prompt</label>
+<textarea id="prompt">In one sentence, explain what a NOT gate does.</textarea>
+<div class="row"><button id="send" disabled>Send test prompt</button></div>
+<h2>Response</h2><div id="output">No response yet.</div>
+<p><small>Sign in only through Puter's own popup. Never enter an Anthropic API key here. Puter may have free usage allowances and limits; free access is not guaranteed to be unlimited.</small></p>
 </main>
 <script type="module">
-const statusEl = document.querySelector('#status');
-const modelEl = document.querySelector('#model');
-const promptEl = document.querySelector('#prompt');
-const outputEl = document.querySelector('#output');
-const loadBtn = document.querySelector('#load');
-const sendBtn = document.querySelector('#send');
-let puter = null;
-let models = [];
-
-function status(s){ statusEl.textContent = s; }
-function errText(e){ return (e && (e.message || e.code)) ? `${e.message || ''}${e.code ? ` (code: ${e.code})` : ''}` : String(e); }
-
-async function loadModels(){
-  loadBtn.disabled = true;
-  sendBtn.disabled = true;
-  modelEl.disabled = true;
-  status('Loading @heyputer/puter.js from esm.sh…');
-  try {
-    if (!puter) {
-      const mod = await import('https://esm.sh/@heyputer/puter.js');
-      puter = mod.puter || mod.default || globalThis.puter;
-    }
-    if (!puter?.ai?.listModels) throw new Error('The package loaded, but puter.ai.listModels() was not found.');
-    status('Library loaded. Requesting Puter model catalogue…');
-    models = await puter.ai.listModels();
-    if (!Array.isArray(models) || models.length === 0) throw new Error('The model catalogue returned no models.');
-    const claude = models.filter(m => /claude|anthropic/i.test(`${m.id||''} ${m.name||''} ${m.provider||''}`));
-    const candidates = claude.length ? claude : models;
-    candidates.sort((a,b) => {
-      const score = m => (/opus/i.test(`${m.id} ${m.name}`)?40:0)+(/sonnet/i.test(`${m.id} ${m.name}`)?20:0)+(/:free$/i.test(m.id||'')?5:0);
+const $ = s => document.querySelector(s);
+const statusEl=$('#status'), modelEl=$('#model'), outputEl=$('#output');
+let puter=null, models=[];
+function status(s){statusEl.textContent=s}
+function errorText(e){return `${e?.message||String(e)}${e?.code?` (code: ${e.code})`:''}`}
+async function init(){
+  $('#signin').disabled=true; $('#check').disabled=true; $('#send').disabled=true;
+  try{
+    const mod=await import('https://esm.sh/@heyputer/puter.js');
+    puter=mod.puter||mod.default||globalThis.puter;
+    if(!puter?.ai?.listModels) throw new Error('Puter.js loaded, but its AI methods were not found.');
+    status('Library loaded. Loading model catalogue…');
+    models=await puter.ai.listModels();
+    if(!Array.isArray(models)||!models.length) throw new Error('No models returned.');
+    const claude=models.filter(m=>/claude|anthropic/i.test(`${m.id||''} ${m.name||''} ${m.provider||''}`));
+    const list=(claude.length?claude:models).slice().sort((a,b)=>{
+      const score=m=>(/opus/i.test(`${m.id} ${m.name}`)?40:0)+(/sonnet/i.test(`${m.id} ${m.name}`)?20:0);
       return score(b)-score(a);
     });
-    modelEl.replaceChildren(...candidates.map(m => {
-      const o=document.createElement('option');
-      o.value=m.id;
-      o.textContent=`${m.name || m.id} — ${m.provider || 'provider unknown'}${m.context ? ` · context ${Number(m.context).toLocaleString()}`:''}`;
-      return o;
+    modelEl.replaceChildren(...list.map(m=>{
+      const o=document.createElement('option');o.value=m.id;
+      o.textContent=`${m.name||m.id} — ${m.provider||'provider unknown'}`;return o;
     }));
-    modelEl.disabled = false;
-    sendBtn.disabled = false;
-    status(`Success: loaded ${models.length} models; showing ${claude.length ? `${claude.length} Claude/Anthropic models` : 'available models (no Claude-labelled models found'}. Select a model and send a short test.`);
-  } catch(e) {
-    status(`FAILED: ${errText(e)}\n\nIf this mentions a network/fetch/import error, the package host or Puter API may be blocked. If it asks for sign-in, the library loaded and we need to test authentication separately.`);
-  } finally {
-    loadBtn.disabled = false;
-  }
+    modelEl.disabled=false;$('#signin').disabled=false;$('#check').disabled=false;$('#send').disabled=false;
+    status(`Loaded ${models.length} models. Next, click “Sign in with Puter”, finish the popup, then check status and send a test.`);
+  }catch(e){status(`Setup failed: ${errorText(e)}\nIf this is a network/import error, the package host may be blocked.`)}
 }
-async function send(){
-  sendBtn.disabled = true;
-  outputEl.textContent = 'Waiting for response…';
-  const model = modelEl.value;
-  try {
-    const result = await puter.ai.chat(promptEl.value, {model});
-    let content = result?.message?.content ?? result?.text ?? result;
-    if (Array.isArray(content)) content = content.map(x => x.text || '').join('');
-    outputEl.textContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
-    status(`AI request completed using model: ${model}`);
-  } catch(e) {
-    outputEl.textContent = `Request failed: ${errText(e)}`;
-    status(`Library and catalogue loaded, but the AI request failed: ${errText(e)}\n\nThis is useful: it means the package/catalogue path works, and the next issue is likely authentication, quota, or the AI request endpoint.`);
-  } finally {
-    sendBtn.disabled = false;
-  }
-}
-loadBtn.addEventListener('click', loadModels);
-sendBtn.addEventListener('click', send);
-loadModels();
+$('#signin').addEventListener('click',async()=>{
+  if(!puter)return;
+  $('#signin').disabled=true;
+  try{
+    status('Opening Puter sign-in… Complete the sign-in popup.');
+    await puter.auth.signIn();
+    status('Sign-in flow completed. Click “Check sign-in status”, then send a test prompt.');
+  }catch(e){status(`Sign-in failed: ${errorText(e)}\nIf a popup was blocked, allow popups for this site if permitted.`)}
+  finally{$('#signin').disabled=false}
+});
+$('#check').addEventListener('click',async()=>{
+  try{
+    const signed=await puter.auth.isSignedIn();
+    let user=null;
+    if(signed && puter.auth.getUser) {try{user=await puter.auth.getUser()}catch{}}
+    status(`Puter signed-in status: ${signed?'SIGNED IN':'NOT SIGNED IN'}${user?.username?`\nAccount: ${user.username}`:''}`);
+  }catch(e){status(`Could not check authentication: ${errorText(e)}`)}
+});
+$('#send').addEventListener('click',async()=>{
+  $('#send').disabled=true;outputEl.textContent='Waiting for response…';
+  try{
+    const result=await puter.ai.chat($('#prompt').value,{model:modelEl.value,normalize:true});
+    const content=result?.message?.content??result?.text??result;
+    outputEl.textContent=typeof content==='string'?content:JSON.stringify(content,null,2);
+    status(`SUCCESS — AI response received using ${modelEl.value}.`);
+  }catch(e){
+    outputEl.textContent=`Request failed: ${errorText(e)}`;
+    status(`AI request failed: ${errorText(e)}\nIf still Unauthorized after signing in, this may be an account/session issue or an upstream service restriction. Save this exact error.`);
+  }finally{$('#send').disabled=false}
+});
+init();
 </script>
-</body>
-</html>
+</body></html>
